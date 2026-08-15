@@ -19,7 +19,7 @@ export interface ExtensionApiLike {
 
 /**
  * omp's ExtensionCommandContext as seen through this plugin's narrow
- * adapter (HandlerCtx). Only what /fork-herdr reads.
+ * adapter (HandlerCtx). Only what /fork-in-herdr reads.
  */
 export interface ExtensionCommandCtx {
   cwd: string;
@@ -63,7 +63,7 @@ function ompProcessArgs(): string[] {
 
 function handlerCtx(ctx: ExtensionCommandCtx): HandlerCtx {
   const sessionFile = ctx.sessionManager.getSessionFile();
-  if (!sessionFile) throw new Error("fork-herdr: current session has no session file");
+  if (!sessionFile) throw new Error("fork-in-herdr: current session has no session file");
   return {
     herdr: new HerdrClient(),
     cwd: ctx.cwd,
@@ -90,13 +90,13 @@ const AGENT_START_RETRY_DELAY_MS = 500;
 export async function runForkInHerdr(ctx: HandlerCtx): Promise<void> {
   const { HERDR_ENV, HERDR_WORKSPACE_ID, HERDR_TAB_ID } = ctx.env;
   if (!HERDR_ENV || !HERDR_WORKSPACE_ID || !HERDR_TAB_ID) {
-    throw new Error("fork-herdr: not running inside herdr (HERDR_ENV unset) — nothing to fork into");
+    throw new Error("fork-in-herdr: not running inside herdr (HERDR_ENV unset) — nothing to fork into");
   }
   if (ctx.busy) {
-    throw new Error("fork-herdr: agent is busy — wait for the current turn to finish");
+    throw new Error("fork-in-herdr: agent is busy — wait for the current turn to finish");
   }
 
-  ctx.notify("fork-herdr: creating fork copy…");
+  ctx.notify("fork-in-herdr: creating fork copy…");
   const fork = await createForkCopy(ctx.sessionFile);
 
   try {
@@ -104,7 +104,7 @@ export async function runForkInHerdr(ctx: HandlerCtx): Promise<void> {
     const labels = await ctx.herdr.listLabels(HERDR_WORKSPACE_ID);
     const label = forkLabel(original.label, labels);
     const paneId = await ctx.herdr.createTab({ workspaceId: HERDR_WORKSPACE_ID, cwd: ctx.cwd, label });
-    ctx.notify(`fork-herdr: starting omp in ${label}…`);
+    ctx.notify(`fork-in-herdr: starting omp in ${label}…`);
     // agent start requires the pane at its shell prompt; a fresh tab's
     // shell may still be initializing — retry briefly before surfacing.
     let lastError: unknown;
@@ -127,20 +127,20 @@ export async function runForkInHerdr(ctx: HandlerCtx): Promise<void> {
       }
     }
     if (lastError !== undefined) throw lastError;
-    ctx.notify(`fork-herdr: forked to ${label} (session ${fork.newId})`);
+    ctx.notify(`fork-in-herdr: forked to ${label} (session ${fork.newId})`);
   } catch (err) {
     throw new Error(
-      `fork-herdr: fork copy ${fork.newId} exists; if a tab was left open, start omp manually with: omp --resume ${fork.newId}: ${err instanceof Error ? err.message : String(err)}`,
+      `fork-in-herdr: fork copy ${fork.newId} exists; if a tab was left open, start omp manually with: omp --resume ${fork.newId}: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 }
 
 export function forkInHerdr(pi: ExtensionApiLike): void {
-  pi.registerCommand("fork-herdr", {
+  pi.registerCommand("fork-in-herdr", {
     description: "Tab-fork: fork this conversation into a new herdr tab",
     handler: async (args, ctx) => {
       if (args.trim() !== "") {
-        throw new Error("fork-herdr takes no arguments");
+        throw new Error("fork-in-herdr takes no arguments");
       }
       await runForkInHerdr(handlerCtx(ctx));
     },

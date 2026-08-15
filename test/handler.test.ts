@@ -141,7 +141,7 @@ describe("runForkInHerdr", () => {
 });
 
 describe("registration", () => {
-  it("registers /fork-herdr with a description and rejects arguments", async () => {
+  it("registers /fork-in-herdr with a description and rejects arguments", async () => {
     let name = "";
     let description: string | undefined;
     let handler: ((args: string, ctx: ExtensionCommandCtx) => Promise<void>) | undefined;
@@ -153,7 +153,7 @@ describe("registration", () => {
       },
     };
     forkInHerdr(api);
-    expect(name).toBe("fork-herdr");
+    expect(name).toBe("fork-in-herdr");
     expect(description).toMatch(/herdr/i);
     expect(handler).toBeDefined();
     await expect(handler!("extra", {} as ExtensionCommandCtx)).rejects.toThrow(/argument/);

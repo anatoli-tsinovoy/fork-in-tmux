@@ -1,6 +1,6 @@
 # fork-in-herdr
 
-An omp extension that adds `/fork-herdr`: fork your current omp conversation into a new herdr tab. The new tab gets the full transcript and artifacts of the original, labeled `2` → `2f1`, `2f1` → `2f1f1` — and your original tab keeps running untouched.
+An omp extension that adds `/fork-in-herdr`: fork your current omp conversation into a new herdr tab. The new tab gets the full transcript and artifacts of the original, labeled `2` → `2f1`, `2f1` → `2f1f1` — and your original tab keeps running untouched.
 
 **Why:** omp's built-in `/fork` continues your current tab on the fork; when you want to explore a divergent approach in parallel — a risky refactor, a side question — you need the fork in a *separate* herdr tab, side by side with your work in progress.
 
@@ -12,11 +12,11 @@ Requires omp 17.2.x and herdr 0.8.x.
 omp plugin install https://github.com/onsails/fork-in-herdr
 ```
 
-That's it — omp links the plugin from git into `~/.omp/plugins` and `/fork-herdr` is available in every session. Use `--scope project` to install only into the current project. Update later with `omp plugin upgrade`.
+That's it — omp links the plugin from git into `~/.omp/plugins` and `/fork-in-herdr` is available in every session. Use `--scope project` to install only into the current project. Update later with `omp plugin upgrade`.
 
 ## Use
 
-Inside a herdr tab running omp, type `/fork-herdr` (no arguments). The command:
+Inside a herdr tab running omp, type `/fork-in-herdr` (no arguments). The command:
 
 1. Refuses outside herdr (`HERDR_ENV` unset) or while the agent is mid-turn — nothing is touched in either case.
 2. Creates a fork copy of your session: fresh session id, `parentSession` = original, artifacts directory copied recursively.

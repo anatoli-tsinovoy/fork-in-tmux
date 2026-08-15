@@ -1,7 +1,7 @@
 {
   "name": "fork-in-herdr",
   "version": "0.1.0",
-  "description": "omp extension: /fork-herdr tab-forks the current herdr tab with the omp conversation",
+  "description": "omp extension: /fork-in-herdr tab-forks the current herdr tab with the omp conversation",
   "omp": {
     "extensions": ["./src/index.ts"]
   },

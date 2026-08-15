@@ -1,6 +1,6 @@
 # Fork by plugin-side session copy, not omp fork APIs
 
-`/fork-herdr` needs a history-carrying fork of the current omp session that leaves the
+`/fork-in-herdr` needs a history-carrying fork of the current omp session that leaves the
 original tab untouched. omp's real fork (`AgentSession.fork()`) is not reachable from
 extension command contexts; the reachable alternatives don't fork (`newSession` is
 empty-with-lineage, `branch` truncates at the selected entry, copies no artifacts, and
