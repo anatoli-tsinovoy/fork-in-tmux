@@ -20,7 +20,7 @@ Run omp inside tmux, then type `/fork-in-tmux` with no arguments. The command:
 
 1. Refuses when `TMUX` or `TMUX_PANE` is unset, while the agent is mid-turn, or before omp has persisted the first transcript entry.
 2. Splits the current tmux pane, preserving the working directory and focus.
-3. Starts `omp --fork <current-session-file>` in the new pane. Omp owns session creation, format migration, lineage, and transcript copying.
+3. Starts `omp [--profile …] [--config …] --fork <current-session-file>` in the new pane. Explicit profile and config overlays are forwarded; ordinary global, profile, and project config is rediscovered by omp from the same profile and working directory.
 
 The original pane and session are never modified. Existing `artifact://` tool-output references are a current omp CLI limitation: `--fork` copies the transcript but, unlike interactive `/fork`, does not copy the source session's artifact directory.
 

@@ -42,17 +42,34 @@ export interface TmuxLike {
   }): Promise<string>;
 }
 
-function ompProcessArgs(): string[] {
-  // Drop argv[0]/argv[1] (runtime + script); keep bootstrap flags like --profile.
-  const scriptArgs = process.argv.slice(2);
-  const profile = scriptArgs.findIndex(
-    (arg) => arg === "--profile" || arg.startsWith("--profile="),
-  );
-  if (profile === -1) return [];
-  const flag = scriptArgs[profile]!;
-  if (flag.includes("=")) return [flag];
-  const value = scriptArgs[profile + 1];
-  return value === undefined ? [flag] : [flag, value];
+export function ompBootstrapArgs(
+  argv: readonly string[] = process.argv.slice(2),
+  env: Record<string, string | undefined> = process.env,
+): string[] {
+  const forwarded: string[] = [];
+  let hasProfileFlag = false;
+
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]!;
+    const namedValue = arg === "--profile" || arg === "--config";
+    const inlineValue =
+      arg.startsWith("--profile=") || arg.startsWith("--config=");
+    if (!namedValue && !inlineValue) continue;
+
+    if (arg === "--profile" || arg.startsWith("--profile=")) {
+      hasProfileFlag = true;
+    }
+    forwarded.push(arg);
+    if (namedValue && argv[i + 1] !== undefined) {
+      forwarded.push(argv[++i]!);
+    }
+  }
+
+  const envProfile = env.OMP_PROFILE ?? env.PI_PROFILE;
+  if (!hasProfileFlag && envProfile) {
+    forwarded.unshift("--profile", envProfile);
+  }
+  return forwarded;
 }
 
 function handlerCtx(ctx: ExtensionCommandCtx): HandlerCtx {
@@ -66,7 +83,7 @@ function handlerCtx(ctx: ExtensionCommandCtx): HandlerCtx {
     env: process.env,
     busy: !ctx.isIdle(),
     notify: (message) => ctx.ui.notify(message, "info"),
-    ompArgs: ompProcessArgs(),
+    ompArgs: ompBootstrapArgs(),
   };
 }
 

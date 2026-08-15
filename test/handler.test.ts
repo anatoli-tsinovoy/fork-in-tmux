@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { forkInTmux, runForkInTmux } from "../src/index";
+import { forkInTmux, ompBootstrapArgs, runForkInTmux } from "../src/index";
 import type {
   ExtensionApiLike,
   ExtensionCommandCtx,
@@ -51,6 +51,34 @@ beforeEach(() => {
   mkdirSync(sessionDir, { recursive: true });
 });
 
+describe("ompBootstrapArgs", () => {
+  it("forwards explicit profile and repeated config overlays", () => {
+    expect(
+      ompBootstrapArgs(
+        [
+          "--model",
+          "opus",
+          "--config",
+          "team.yml",
+          "--config=local.yml",
+          "--profile=work",
+        ],
+        {},
+      ),
+    ).toEqual(["--config", "team.yml", "--config=local.yml", "--profile=work"]);
+  });
+
+  it("turns an environment-selected profile into an explicit argument", () => {
+    expect(ompBootstrapArgs([], { OMP_PROFILE: "work" })).toEqual([
+      "--profile",
+      "work",
+    ]);
+    expect(
+      ompBootstrapArgs(["--profile", "explicit"], { OMP_PROFILE: "ignored" }),
+    ).toEqual(["--profile", "explicit"]);
+  });
+});
+
 describe("runForkInTmux", () => {
   it("starts omp's built-in fork in a detached pane beside the original", async () => {
     const { tmux, calls } = fakeTmux();
@@ -67,14 +95,19 @@ describe("runForkInTmux", () => {
     expect(readdirSync(sessionDir)).toEqual(["current.jsonl"]);
   });
 
-  it("forwards the running omp profile to the forked omp", async () => {
+  it("forwards the running omp profile and config overlays", async () => {
     const { tmux, calls } = fakeTmux();
-    const ctx = handlerCtx({ tmux, ompArgs: ["--profile", "work"] });
+    const ctx = handlerCtx({
+      tmux,
+      ompArgs: ["--profile", "work", "--config", "team.yml"],
+    });
     await runForkInTmux(ctx);
     expect(calls[0]?.command).toEqual([
       "omp",
       "--profile",
       "work",
+      "--config",
+      "team.yml",
       "--fork",
       ctx.sessionFile,
     ]);
