@@ -1,7 +1,7 @@
 # Fork by plugin-side session copy, not omp fork APIs
 
-`/fork-in-herdr` needs a history-carrying fork of the current omp session that leaves the
-original tab untouched. omp's real fork (`AgentSession.fork()`) is not reachable from
+`/fork-in-tmux` needs a history-carrying fork of the current omp session that leaves the
+original pane untouched. omp's real fork (`AgentSession.fork()`) is not reachable from
 extension command contexts; the reachable alternatives don't fork (`newSession` is
 empty-with-lineage, `branch` truncates at the selected entry, copies no artifacts, and
 adopts the branch in the current tab). We decided the plugin performs the fork itself:
@@ -21,7 +21,7 @@ working artifacts.
   regex.
 - Resume-by-id only resolves files inside the current session directory
   (`~/.omp/agent/sessions/<cwd-slug>/`); the fork copy must be written there. The new
-  herdr tab shares the cwd, so this holds by construction.
+  tmux pane starts with the same cwd, so this holds by construction.
 - Without the sibling artifact-dir copy, `artifact://` references in the copied
   transcript break on resume (blob refs survive; artifact logs do not).
 - If omp later exposes a proper fork on extension contexts, switch the plugin internals

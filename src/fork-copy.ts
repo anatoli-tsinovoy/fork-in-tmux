@@ -35,7 +35,7 @@ export async function createForkCopy(sessionFile: string): Promise<ForkCopy> {
   const file = Bun.file(sessionFile);
   if (!(await file.exists())) {
     throw new Error(
-      `fork-in-herdr: session has no transcript yet — omp writes the session file on the first turn; send a message before forking (${sessionFile})`,
+      `fork-in-tmux: session has no transcript yet — omp writes the session file on the first turn; send a message before forking (${sessionFile})`,
     );
   }
   const text = await file.text();
@@ -45,32 +45,49 @@ export async function createForkCopy(sessionFile: string): Promise<ForkCopy> {
 
   const headerLine = lines[1];
   if (headerLine === undefined) {
-    throw new Error(`fork-in-herdr: session file has no session header on line 2: ${sessionFile}`);
+    throw new Error(
+      `fork-in-tmux: session file has no session header on line 2: ${sessionFile}`,
+    );
   }
   let header: SessionHeader;
   try {
     header = JSON.parse(headerLine) as SessionHeader;
   } catch {
-    throw new Error(`fork-in-herdr: session header on line 2 is not JSON: ${sessionFile}`);
+    throw new Error(
+      `fork-in-tmux: session header on line 2 is not JSON: ${sessionFile}`,
+    );
   }
   if (header.type !== "session") {
-    throw new Error(`fork-in-herdr: session header is not on line 2 (found ${header.type}): ${sessionFile}`);
+    throw new Error(
+      `fork-in-tmux: session header is not on line 2 (found ${header.type}): ${sessionFile}`,
+    );
   }
   if (header.version !== SUPPORTED_HEADER_VERSION) {
     throw new Error(
-      `fork-in-herdr: session header version ${String(header.version)} unsupported (expected ${SUPPORTED_HEADER_VERSION}): ${sessionFile}`,
+      `fork-in-tmux: session header version ${String(header.version)} unsupported (expected ${SUPPORTED_HEADER_VERSION}): ${sessionFile}`,
     );
   }
   if (typeof header.id !== "string" || header.id === "") {
-    throw new Error(`fork-in-herdr: session header has no session id: ${sessionFile}`);
+    throw new Error(
+      `fork-in-tmux: session header has no session id: ${sessionFile}`,
+    );
   }
   const newId = Bun.randomUUIDv7();
   const { providerPromptCacheKey: _drop, ...rest } = header;
-  const newHeader: SessionHeader = { ...rest, id: newId, parentSession: header.id };
+  const newHeader: SessionHeader = {
+    ...rest,
+    id: newId,
+    parentSession: header.id,
+  };
 
   const dir = dirname(sessionFile);
-  const newFile = join(dir, `${new Date().toISOString().replace(/[:.]/g, "-").slice(0, -1)}_${newId}.jsonl`);
-  const content = [lines[0] ?? "", JSON.stringify(newHeader), ...lines.slice(2)].join("\n") + "\n";
+  const newFile = join(
+    dir,
+    `${new Date().toISOString().replace(/[:.]/g, "-").slice(0, -1)}_${newId}.jsonl`,
+  );
+  const content =
+    [lines[0] ?? "", JSON.stringify(newHeader), ...lines.slice(2)].join("\n") +
+    "\n";
   await mkdir(dir, { recursive: true });
   await writeFile(newFile, content, { flag: "wx" });
 

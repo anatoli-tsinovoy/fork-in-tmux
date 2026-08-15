@@ -18,23 +18,36 @@ afterAll(() => {
  * Writes a fixture session: <ts>_<uuid>.jsonl (title line, session header
  * line 2, one entry) plus a sibling artifact dir with entries.
  */
-function writeFixture(dir: string, id: string): { file: string; artifactDir: string } {
+function writeFixture(
+  dir: string,
+  id: string,
+): { file: string; artifactDir: string } {
   const name = `2026-08-14T22-55-27-165Z_${id}`;
   const file = join(dir, `${name}.jsonl`);
   writeFileSync(
     file,
     [
-      JSON.stringify({ type: "title", v: 1, title: "fixture", updatedAt: "2026-08-14T22:55:27.165Z" }),
+      JSON.stringify({
+        type: "title",
+        v: 1,
+        title: "fixture",
+        updatedAt: "2026-08-14T22:55:27.165Z",
+      }),
       JSON.stringify({
         type: "session",
         version: 3,
         id,
         timestamp: "2026-08-14T22:55:27.165Z",
-        cwd: "/home/wb/dev/os/fork-in-herdr",
+        cwd: "/home/wb/dev/os/fork-in-tmux",
         parentSession: null,
         providerPromptCacheKey: id,
       }),
-      JSON.stringify({ type: "message", id: "m1", parentId: null, timestamp: "2026-08-14T22:55:30.000Z" }),
+      JSON.stringify({
+        type: "message",
+        id: "m1",
+        parentId: null,
+        timestamp: "2026-08-14T22:55:30.000Z",
+      }),
     ].join("\n") + "\n",
   );
   const artifactDir = join(dir, name);
@@ -54,7 +67,9 @@ describe("createForkCopy", () => {
     expect(fork.file).not.toEqual(file);
     expect(fork.parentSession).toBe(oldId);
     // fresh UUIDv7: version nibble 7 at position 14, variant nibble 8/9/a/b at 19
-    expect(fork.newId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    expect(fork.newId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
     expect(fork.newId).not.toBe(oldId);
 
     const lines = (await Bun.file(fork.file).text()).trimEnd().split("\n");
@@ -68,7 +83,7 @@ describe("createForkCopy", () => {
     expect(header.id).toBe(fork.newId);
     expect(header.parentSession).toBe(oldId);
     expect(header).not.toHaveProperty("providerPromptCacheKey");
-    expect(header.cwd).toBe("/home/wb/dev/os/fork-in-herdr");
+    expect(header.cwd).toBe("/home/wb/dev/os/fork-in-tmux");
     expect(header.version).toBe(3);
   });
 
@@ -79,9 +94,17 @@ describe("createForkCopy", () => {
 
     expect(fork.artifactDir).not.toBeNull();
     expect(fork.artifactDir!.startsWith(sessionDir)).toBe(true);
-    expect(readdirSync(fork.artifactDir!).sort()).toEqual(readdirSync(artifactDir).sort());
-    expect(await Bun.file(join(fork.artifactDir!, "1.read.log")).text()).toBe("tool log");
-    expect(await Bun.file(join(fork.artifactDir!, "url-search", "0.read.log")).text()).toBe("nested");
+    expect(readdirSync(fork.artifactDir!).sort()).toEqual(
+      readdirSync(artifactDir).sort(),
+    );
+    expect(await Bun.file(join(fork.artifactDir!, "1.read.log")).text()).toBe(
+      "tool log",
+    );
+    expect(
+      await Bun.file(
+        join(fork.artifactDir!, "url-search", "0.read.log"),
+      ).text(),
+    ).toBe("nested");
   });
 
   it("works when the session has no artifact directory", async () => {
@@ -106,7 +129,10 @@ describe("createForkCopy", () => {
   });
 
   it("refuses a session whose transcript has not been written yet (ENOENT case)", async () => {
-    const pending = join(sessionDir, "2026-08-15T01-06-27-312Z_01a002f4-b770-7000-8419-0719e32835fb.jsonl");
+    const pending = join(
+      sessionDir,
+      "2026-08-15T01-06-27-312Z_01a002f4-b770-7000-8419-0719e32835fb.jsonl",
+    );
     expect(createForkCopy(pending)).rejects.toThrow(/no transcript yet/);
   });
 

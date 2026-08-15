@@ -1,7 +1,7 @@
 {
-  "name": "fork-in-herdr",
+  "name": "fork-in-tmux",
   "version": "0.1.0",
-  "description": "omp extension: /fork-in-herdr tab-forks the current herdr tab with the omp conversation",
+  "description": "omp extension: /fork-in-tmux pane-forks the current conversation under tmux",
   "omp": {
     "extensions": ["./src/index.ts"]
   },
