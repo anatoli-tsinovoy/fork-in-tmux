@@ -35,7 +35,6 @@ _Avoid_: duplicating, cloning the tab, bare "fork"
 omp's built-in `/fork`: duplicates the current omp session transcript inside the *same* tab. A different concept from tab-fork; do not conflate.
 _Avoid_: applying "fork" to both concepts without a qualifier
 
-
 **Fork copy**:
 The plugin-created session file: a copy of the original conversation's transcript with a fresh session id and `parentSession` pointing at the original. The new tab's omp resumes this file.
 _Avoid_: clone, duplicate session

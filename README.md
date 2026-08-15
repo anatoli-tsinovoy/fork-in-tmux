@@ -1,30 +1,34 @@
 # fork-in-herdr
 
-An omp extension whose `/fork-herdr` command tab-forks the current herdr tab: it forks the current omp conversation, then creates a new herdr tab and resumes the forked conversation in it.
+An omp extension that adds `/fork-herdr`: fork your current omp conversation into a new herdr tab. The new tab gets the full transcript and artifacts of the original, labeled `2` → `2f1`, `2f1` → `2f1f1` — and your original tab keeps running untouched.
 
-Full design: see `CONTEXT.md` (glossary), `docs/adr/0001` (fork-mechanism decision), and [spec issue #1](https://github.com/onsails/omp-herdr-fork/issues/1).
+**Why:** omp's built-in `/fork` continues your current tab on the fork; when you want to explore a divergent approach in parallel — a risky refactor, a side question — you need the fork in a *separate* herdr tab, side by side with your work in progress.
 
 ## Install
 
-Add the module path to omp's extension settings (`~/.omp/agent/config.yml`):
+Requires omp 17.2.x and herdr 0.8.x.
 
-```yaml
-extensions:
-  - /home/wb/dev/os/omp-herdr-fork/src/index.ts
+```
+omp plugin install https://github.com/onsails/omp-herdr-fork
 ```
 
-(omp loads explicit `.ts` entries directly; JSON settings use `"extensions": ["..."]`.)
+That's it — omp links the plugin from git into `~/.omp/plugins` and `/fork-herdr` is available in every session. Use `--scope project` to install only into the current project. Update later with `omp plugin upgrade`.
 
 ## Use
 
-Inside a herdr workspace tab running omp: type `/fork-herdr`. The command:
+Inside a herdr tab running omp, type `/fork-herdr` (no arguments). The command:
 
-1. Refuses outside herdr (`HERDR_ENV` unset) or while the agent is mid-turn.
-2. Creates a fork copy of the session (fresh id, `parentSession` = original, artifacts copied).
-3. Creates a new herdr tab labeled `<original-label>f<n>` (e.g. `2` → `2f1`, next free number).
-4. Starts omp in the new tab resumed at the fork copy's session id.
+1. Refuses outside herdr (`HERDR_ENV` unset) or while the agent is mid-turn — nothing is touched in either case.
+2. Creates a fork copy of your session: fresh session id, `parentSession` = original, artifacts directory copied recursively.
+3. Creates a new herdr tab in the same workspace, labeled `<original-label>f<n>` (first free `n`), and starts omp in it resumed at the fork copy's session id.
 
-The original tab is never modified. If the tab is created but omp fails to start, the error names the session id — resume manually with `omp --resume <id>`.
+The original tab is never modified. If the tab is created but omp fails to start, the error message names the session id — recover manually with `omp --resume <id>`.
+
+### Troubleshooting
+
+- **"session has no transcript yet"** — omp writes the session file only after the first turn. Send a message first, then fork.
+- **"session header version N unsupported"** — the on-disk session format changed; the plugin pins header version 3. File an issue.
+- Fork tab was created but omp didn't start — the shell tab stays open on purpose (inspect it), and the error carries the `omp --resume <id>` recovery line.
 
 ## Develop
 
@@ -34,6 +38,4 @@ bun x tsc --noEmit   # typecheck
 bun test             # unit suite (handler seam; no real herdr/omp)
 ```
 
-Manual smoke checklist: inside a real herdr workspace run `/fork-herdr`; verify new tab label, original stays focused, transcript present in the forked tab; fork twice → `f2`; run outside herdr and mid-turn → both refusals.
-
-Supported: session header version 3 (omp 17.2.x), herdr 0.8.x. The plugin fails loudly on other header versions.
+`omp plugin install /path/to/this/repo` links the local checkout for development. Tests exercise the registered-command seam with a fake herdr client and real temp session files; domain vocabulary lives in `CONTEXT.md`, the fork-mechanism decision in `docs/adr/0001`, the full spec in [issue #1](https://github.com/onsails/omp-herdr-fork/issues/1).
