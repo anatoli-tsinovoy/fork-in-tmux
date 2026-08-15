@@ -1,10 +1,10 @@
-# omp-herdr-fork
+# fork-in-herdr
 
 ## Agent skills
 
 ### Issue tracker
 
-Issues live in GitHub Issues (`onsails/omp-herdr-fork`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues live in GitHub Issues (`onsails/fork-in-herdr`), via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

@@ -1,4 +1,4 @@
-# omp-herdr-fork
+# fork-in-herdr
 
 An omp plugin whose `/fork-herdr` command tab-forks the current herdr tab: it forks the current omp conversation, then creates a new herdr tab and resumes the forked conversation in it.
 

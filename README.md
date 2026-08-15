@@ -9,7 +9,7 @@ An omp extension that adds `/fork-herdr`: fork your current omp conversation int
 Requires omp 17.2.x and herdr 0.8.x.
 
 ```
-omp plugin install https://github.com/onsails/omp-herdr-fork
+omp plugin install https://github.com/onsails/fork-in-herdr
 ```
 
 That's it — omp links the plugin from git into `~/.omp/plugins` and `/fork-herdr` is available in every session. Use `--scope project` to install only into the current project. Update later with `omp plugin upgrade`.
@@ -38,4 +38,4 @@ bun x tsc --noEmit   # typecheck
 bun test             # unit suite (handler seam; no real herdr/omp)
 ```
 
-`omp plugin install /path/to/this/repo` links the local checkout for development. Tests exercise the registered-command seam with a fake herdr client and real temp session files; domain vocabulary lives in `CONTEXT.md`, the fork-mechanism decision in `docs/adr/0001`, the full spec in [issue #1](https://github.com/onsails/omp-herdr-fork/issues/1).
+`omp plugin install /path/to/this/repo` links the local checkout for development. Tests exercise the registered-command seam with a fake herdr client and real temp session files; domain vocabulary lives in `CONTEXT.md`, the fork-mechanism decision in `docs/adr/0001`, the full spec in [issue #1](https://github.com/onsails/fork-in-herdr/issues/1).
