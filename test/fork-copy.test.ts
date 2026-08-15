@@ -105,6 +105,11 @@ describe("createForkCopy", () => {
     expect(createForkCopy(bad)).rejects.toThrow(/session header/);
   });
 
+  it("refuses a session whose transcript has not been written yet (ENOENT case)", async () => {
+    const pending = join(sessionDir, "2026-08-15T01-06-27-312Z_01a002f4-b770-7000-8419-0719e32835fb.jsonl");
+    expect(createForkCopy(pending)).rejects.toThrow(/no transcript yet/);
+  });
+
   it("refuses an unsupported session header version", async () => {
     const bad = join(sessionDir, "bad-version.jsonl");
     writeFileSync(

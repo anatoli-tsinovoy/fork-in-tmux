@@ -32,7 +32,13 @@ interface SessionHeader {
  * recursively when present, so artifact:// references keep resolving.
  */
 export async function createForkCopy(sessionFile: string): Promise<ForkCopy> {
-  const text = await Bun.file(sessionFile).text();
+  const file = Bun.file(sessionFile);
+  if (!(await file.exists())) {
+    throw new Error(
+      `fork-herdr: session has no transcript yet — omp writes the session file on the first turn; send a message before forking (${sessionFile})`,
+    );
+  }
+  const text = await file.text();
   const lines = text.split("\n");
   // Files end with a trailing newline; an empty final element is not a line.
   if (lines.at(-1) === "") lines.pop();
