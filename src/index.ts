@@ -1,5 +1,4 @@
 import { TmuxClient } from "./tmux-client";
-import { createForkCopy } from "./fork-copy";
 
 /**
  * The omp extension factory surface fork-in-tmux needs. omp's real
@@ -83,20 +82,22 @@ export async function runForkInTmux(ctx: HandlerCtx): Promise<void> {
       "fork-in-tmux: agent is busy — wait for the current turn to finish",
     );
   }
-
-  ctx.notify("fork-in-tmux: creating fork copy…");
-  const fork = await createForkCopy(ctx.sessionFile);
+  if (!(await Bun.file(ctx.sessionFile).exists())) {
+    throw new Error(
+      "fork-in-tmux: session has no transcript yet — send a message before forking",
+    );
+  }
 
   try {
     const paneId = await ctx.tmux.splitPane({
       targetPane: TMUX_PANE,
       cwd: ctx.cwd,
-      command: ["omp", ...ctx.ompArgs, "--resume", fork.newId],
+      command: ["omp", ...ctx.ompArgs, "--fork", ctx.sessionFile],
     });
-    ctx.notify(`fork-in-tmux: forked into ${paneId} (session ${fork.newId})`);
+    ctx.notify(`fork-in-tmux: forked into ${paneId}`);
   } catch (err) {
     throw new Error(
-      `fork-in-tmux: fork copy ${fork.newId} exists; start it manually in another tmux pane with: omp ${[...ctx.ompArgs, "--resume", fork.newId].join(" ")}: ${err instanceof Error ? err.message : String(err)}`,
+      `fork-in-tmux: could not create tmux pane: ${err instanceof Error ? err.message : String(err)}`,
     );
   }
 }

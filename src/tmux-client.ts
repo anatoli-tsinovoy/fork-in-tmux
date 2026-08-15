@@ -34,7 +34,7 @@ export interface SplitPaneOptions {
   command: readonly string[];
 }
 
-/** The single choke point for creating the pane that runs the fork copy. */
+/** The single choke point for creating the pane that runs omp's fork. */
 export class TmuxClient {
   #runner: Runner;
 

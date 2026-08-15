@@ -18,7 +18,13 @@ describe("tmux client", () => {
     const paneId = await client.splitPane({
       targetPane: "%4",
       cwd: "/repo with spaces",
-      command: ["omp", "--profile", "work profile", "--resume", "abcd"],
+      command: [
+        "omp",
+        "--profile",
+        "work profile",
+        "--fork",
+        "/sessions/current.jsonl",
+      ],
     });
     expect(paneId).toBe("%9");
     expect(seen).toEqual([
@@ -36,8 +42,8 @@ describe("tmux client", () => {
         "omp",
         "--profile",
         "work profile",
-        "--resume",
-        "abcd",
+        "--fork",
+        "/sessions/current.jsonl",
       ],
     ]);
   });

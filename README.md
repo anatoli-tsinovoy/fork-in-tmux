@@ -1,8 +1,8 @@
 # fork-in-tmux
 
-An omp extension that adds `/fork-in-tmux`: fork the current conversation into a new tmux pane. The new pane gets the full transcript and artifacts; the original pane keeps running and retains focus.
+An omp extension that adds `/fork-in-tmux`: fork the current conversation into a new tmux pane while the original pane keeps running and retains focus.
 
-**Why:** omp's built-in `/fork` continues the current pane on the fork. A pane-fork keeps the original conversation in place and starts the divergent conversation beside it.
+**Why:** omp's interactive `/fork` continues the current pane on the fork. This extension starts omp's built-in CLI fork in a sibling pane instead.
 
 ## Install
 
@@ -18,17 +18,17 @@ Omp links the plugin from git into `~/.omp/plugins`; `/fork-in-tmux` is then ava
 
 Run omp inside tmux, then type `/fork-in-tmux` with no arguments. The command:
 
-1. Refuses when `TMUX` or `TMUX_PANE` is unset, or while the agent is mid-turn. No fork copy or pane is created.
-2. Creates a fork copy of the current session with a fresh session id, `parentSession` pointing at the original, and a recursive copy of its artifact directory.
-3. Splits the current tmux pane, preserving the working directory and focus, and starts `omp --resume <fork-id>` in the new pane.
+1. Refuses when `TMUX` or `TMUX_PANE` is unset, while the agent is mid-turn, or before omp has persisted the first transcript entry.
+2. Splits the current tmux pane, preserving the working directory and focus.
+3. Starts `omp --fork <current-session-file>` in the new pane. Omp owns session creation, format migration, lineage, and transcript copying.
 
-The original pane is never modified. If the fork copy exists but tmux cannot create the pane, the error names the session id and the manual `omp --resume <id>` recovery command.
+The original pane and session are never modified. Existing `artifact://` tool-output references are a current omp CLI limitation: `--fork` copies the transcript but, unlike interactive `/fork`, does not copy the source session's artifact directory.
 
 ### Troubleshooting
 
 - **"omp is not running inside tmux"** — start tmux, run omp in a pane, and invoke the command again.
 - **"session has no transcript yet"** — omp writes the session file only after the first turn. Send a message first, then pane-fork.
-- **"session header version N unsupported"** — the on-disk session format changed; the plugin pins header version 3.
+- Historical `artifact://` references may not resolve in the new pane until omp's CLI fork copies artifacts.
 
 ## Develop
 
@@ -38,4 +38,4 @@ bun run typecheck
 bun test
 ```
 
-`omp plugin install /path/to/this/repo` links the local checkout for development. Tests exercise the registered-command seam with a fake tmux client and real temporary session files; domain vocabulary lives in `CONTEXT.md`, and the fork-copy mechanism decision lives in `docs/adr/0001-fork-by-plugin-side-session-copy.md`.
+`omp plugin install /path/to/this/repo` links the local checkout for development. Tests exercise the registered-command seam with a fake tmux client; domain vocabulary lives in `CONTEXT.md`, and the fork-mechanism decision lives in `docs/adr/0001-use-omp-cli-fork.md`.

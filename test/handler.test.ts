@@ -9,30 +9,11 @@ import type {
   TmuxLike,
 } from "../src/index";
 
-const ORIGINAL_ID = "01a0028a-3480-7000-8a93-16440ac9433f";
 let sessionDir: string;
 
-function fixtureSession(id: string): string {
-  const file = join(sessionDir, `2026-08-14T22-55-27-165Z_${id}.jsonl`);
-  writeFileSync(
-    file,
-    [
-      JSON.stringify({
-        type: "title",
-        v: 1,
-        title: "",
-        updatedAt: "2026-08-14T22:55:27.165Z",
-      }),
-      JSON.stringify({
-        type: "session",
-        version: 3,
-        id,
-        timestamp: "2026-08-14T22:55:27.165Z",
-        cwd: "/repo",
-        parentSession: null,
-      }),
-    ].join("\n") + "\n",
-  );
+function fixtureSession(): string {
+  const file = join(sessionDir, "current.jsonl");
+  writeFileSync(file, '{"type":"session","version":3,"id":"original"}\n');
   return file;
 }
 
@@ -56,7 +37,7 @@ function handlerCtx(overrides: Partial<HandlerCtx> = {}): HandlerCtx {
   return {
     tmux: fakeTmux().tmux,
     cwd: "/repo",
-    sessionFile: fixtureSession(ORIGINAL_ID),
+    sessionFile: fixtureSession(),
     env: { TMUX: "/tmp/tmux-1000/default,123,0", TMUX_PANE: "%4" },
     busy: false,
     notify: () => {},
@@ -71,47 +52,35 @@ beforeEach(() => {
 });
 
 describe("runForkInTmux", () => {
-  it("copies the session and resumes the fork in a detached pane beside the original", async () => {
+  it("starts omp's built-in fork in a detached pane beside the original", async () => {
     const { tmux, calls } = fakeTmux();
     const ctx = handlerCtx({ tmux });
     await runForkInTmux(ctx);
 
-    const forkFile = readdirSync(sessionDir).find(
-      (file) =>
-        file.endsWith(".jsonl") && !file.endsWith(`${ORIGINAL_ID}.jsonl`),
-    );
-    expect(forkFile).toBeDefined();
-    const header = JSON.parse(
-      (await Bun.file(join(sessionDir, forkFile!)).text()).split("\n")[1]!,
-    ) as {
-      id: string;
-      parentSession: string;
-    };
-    expect(header.parentSession).toBe(ORIGINAL_ID);
     expect(calls).toEqual([
       {
         targetPane: "%4",
         cwd: "/repo",
-        command: ["omp", "--resume", header.id],
+        command: ["omp", "--fork", ctx.sessionFile],
       },
     ]);
-    expect(
-      (await Bun.file(ctx.sessionFile).text()).trimEnd().split("\n"),
-    ).toHaveLength(2);
+    expect(readdirSync(sessionDir)).toEqual(["current.jsonl"]);
   });
 
   it("forwards the running omp profile to the forked omp", async () => {
     const { tmux, calls } = fakeTmux();
-    await runForkInTmux(handlerCtx({ tmux, ompArgs: ["--profile", "work"] }));
-    expect(calls[0]?.command.slice(0, 4)).toEqual([
+    const ctx = handlerCtx({ tmux, ompArgs: ["--profile", "work"] });
+    await runForkInTmux(ctx);
+    expect(calls[0]?.command).toEqual([
       "omp",
       "--profile",
       "work",
-      "--resume",
+      "--fork",
+      ctx.sessionFile,
     ]);
   });
 
-  it("refuses outside tmux before creating a fork copy", async () => {
+  it("refuses outside tmux before touching the session", async () => {
     const { tmux, calls } = fakeTmux();
     const ctx = handlerCtx({ tmux, env: {} });
     const before = readdirSync(sessionDir);
@@ -126,27 +95,33 @@ describe("runForkInTmux", () => {
       tmux,
       env: { TMUX: "/tmp/tmux-1000/default,123,0" },
     });
-    const before = readdirSync(sessionDir);
     await expect(runForkInTmux(ctx)).rejects.toThrow(/TMUX_PANE/);
     expect(calls).toEqual([]);
-    expect(readdirSync(sessionDir)).toEqual(before);
   });
 
-  it("refuses while the agent is busy before creating a fork copy", async () => {
+  it("refuses while the agent is busy", async () => {
     const { tmux, calls } = fakeTmux();
-    const ctx = handlerCtx({ tmux, busy: true });
-    const before = readdirSync(sessionDir);
-    await expect(runForkInTmux(ctx)).rejects.toThrow(/busy/);
+    await expect(
+      runForkInTmux(handlerCtx({ tmux, busy: true })),
+    ).rejects.toThrow(/busy/);
     expect(calls).toEqual([]);
-    expect(readdirSync(sessionDir)).toEqual(before);
   });
 
-  it("reports recovery instructions when tmux cannot create the pane", async () => {
+  it("refuses before splitting when omp has not persisted the transcript", async () => {
+    const { tmux, calls } = fakeTmux();
+    const missing = join(sessionDir, "missing.jsonl");
+    await expect(
+      runForkInTmux(handlerCtx({ tmux, sessionFile: missing })),
+    ).rejects.toThrow(/no transcript/);
+    expect(calls).toEqual([]);
+  });
+
+  it("surfaces tmux pane creation failures", async () => {
     const { tmux } = fakeTmux(
       new Error("tmux split-window failed (exit 1): no space for new pane"),
     );
     await expect(runForkInTmux(handlerCtx({ tmux }))).rejects.toThrow(
-      /omp --resume/,
+      /no space for new pane/,
     );
   });
 });
