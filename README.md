@@ -6,7 +6,7 @@ An omp extension that adds `/fork-in-tmux`: fork the current conversation into a
 
 ## Install
 
-Requires tmux 3.2 or newer and an omp build containing [oh-my-pi#8664](https://github.com/can1357/oh-my-pi/pull/8664). Omp 17.3.4 predates the artifact-copy fix.
+Requires omp 17.3.5 or newer and tmux 3.2 or newer.
 
 ```sh
 omp plugin install https://github.com/anatoli-tsinovoy/omp-fork-in-tmux
@@ -28,7 +28,7 @@ The original pane and session are never modified. Omp owns the forked transcript
 
 - **"omp is not running inside tmux"** — start tmux, run omp in a pane, and invoke the command again.
 - **"session has no transcript yet"** — omp writes the session file only after the first turn. Send a message first, then pane-fork.
-- **Historical `artifact://` references do not resolve in the new pane** — upgrade from omp 17.3.4 to a build containing [oh-my-pi#8664](https://github.com/can1357/oh-my-pi/pull/8664).
+- **Historical `artifact://` references do not resolve in the new pane** — upgrade to omp 17.3.5 or newer.
 
 ## Develop
 
