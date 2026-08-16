@@ -1,4 +1,4 @@
-# fork-in-tmux
+# omp-fork-in-tmux
 
 An omp plugin whose `/fork-in-tmux` command pane-forks the current conversation: it opens a new tmux pane and starts omp's built-in session fork there.
 

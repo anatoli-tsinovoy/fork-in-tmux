@@ -1,7 +1,7 @@
 import { TmuxClient } from "./tmux-client";
 
 /**
- * The omp extension factory surface fork-in-tmux needs. omp's real
+ * The omp-fork-in-tmux extension factory surface needs. omp's real
  * ExtensionAPI is broader; this structural type avoids importing omp internals.
  */
 export interface ExtensionApiLike {

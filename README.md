@@ -1,4 +1,4 @@
-# fork-in-tmux
+# omp-fork-in-tmux
 
 An omp extension that adds `/fork-in-tmux`: fork the current conversation into a new tmux pane while the original pane keeps running and retains focus.
 
@@ -6,10 +6,10 @@ An omp extension that adds `/fork-in-tmux`: fork the current conversation into a
 
 ## Install
 
-Requires omp 17.2.x and tmux 3.2 or newer.
+Requires tmux 3.2 or newer and an omp build containing [oh-my-pi#8664](https://github.com/can1357/oh-my-pi/pull/8664). Omp 17.3.4 predates the artifact-copy fix.
 
 ```sh
-omp plugin install https://github.com/anatoli-tsinovoy/fork-in-tmux
+omp plugin install https://github.com/anatoli-tsinovoy/omp-fork-in-tmux
 ```
 
 Omp links the plugin from git into `~/.omp/plugins`; `/fork-in-tmux` is then available in every session. Use `--scope project` to install only in the current project. Update later with `omp plugin upgrade`.
@@ -22,13 +22,13 @@ Run omp inside tmux, then type `/fork-in-tmux` with no arguments. The command:
 2. Splits the current tmux pane, preserving the working directory and focus.
 3. Starts `omp [--profile …] [--config …] --fork <current-session-file>` in the new pane. Explicit profile and config overlays are forwarded; ordinary global, profile, and project config is rediscovered by omp from the same profile and working directory.
 
-The original pane and session are never modified. Existing `artifact://` tool-output references are a current omp CLI limitation: `--fork` copies the transcript but, unlike interactive `/fork`, does not copy the source session's artifact directory.
+The original pane and session are never modified. Omp owns the forked transcript, lineage, prompt-cache state, and artifact copy.
 
 ### Troubleshooting
 
 - **"omp is not running inside tmux"** — start tmux, run omp in a pane, and invoke the command again.
 - **"session has no transcript yet"** — omp writes the session file only after the first turn. Send a message first, then pane-fork.
-- Historical `artifact://` references may not resolve in the new pane until omp's CLI fork copies artifacts.
+- **Historical `artifact://` references do not resolve in the new pane** — upgrade from omp 17.3.4 to a build containing [oh-my-pi#8664](https://github.com/can1357/oh-my-pi/pull/8664).
 
 ## Develop
 

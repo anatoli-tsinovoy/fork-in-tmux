@@ -22,7 +22,6 @@ internal on-disk schema.
 - Omp owns session ids, format migration, lineage, prompt-cache handling, and transcript
   persistence.
 - The source session must have been persisted before the pane is created.
-- Omp 17.3.4's CLI `forkFrom()` path does not copy the source artifact directory, so
-  historical `artifact://` references can be unavailable in the new pane. Interactive
-  `/fork` does copy artifacts. This should be fixed in omp rather than reimplemented
-  here.
+- Omp builds containing [oh-my-pi#8664](https://github.com/can1357/oh-my-pi/pull/8664)
+  copy the source artifact directory in the CLI fork path, preserving historical
+  `artifact://` references. Omp 17.3.4 predates that fix.

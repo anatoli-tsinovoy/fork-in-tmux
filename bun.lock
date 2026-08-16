@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "fork-in-tmux",
+      "name": "omp-fork-in-tmux",
       "devDependencies": {
         "@types/bun": "^1.3.0",
         "typescript": "^5.9.3",
